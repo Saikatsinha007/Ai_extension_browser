@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Tab Assistant Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-description {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        .input-description a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .input-description a:hover {
+            text-decoration: underline;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .save-button:active {
+            transform: translateY(0);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .feature-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .feature-list h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .feature-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .feature-list li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .api-key-toggle {
+            position: relative;
+        }
+
+        .toggle-visibility {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .toggle-visibility:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Tab Assistant</h1>
+        <p class="subtitle">Configure your AI assistant settings</p>
+
+        <div class="feature-list">
+            <h3>✨ Features</h3>
+            <ul>
+                <li>📸 Take screenshots of any webpage</li>
+                <li>📄 Analyze and describe page content</li>
+                <li>🧪 Generate comprehensive test cases</li>
+                <li>📝 Create detailed documentation</li>
+                <li>💬 Chat about any aspect of the current tab</li>
+                <li>🔍 Extract and analyze page structure</li>
+            </ul>
+        </div>
+
+        <form id="settings-form">
+            <div class="form-group">
+                <label for="api-key">Gemini API Key</label>
+                <div class="api-key-toggle">
+                    <input type="password" id="api-key" placeholder="Enter your Gemini API key" />
+                    <button type="button" class="toggle-visibility" onclick="toggleApiKeyVisibility()">👁️</button>
+                </div>
+                <div class="input-description">
+                    Get your free API key from 
+                    <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>.
+                    Your key is stored locally and never shared.
+                </div>
+            </div>
+
+            <button type="submit" class="save-button">Save Settings</button>
+        </form>
+
+        <div id="success-message" class="success-message">
+            ✅ Settings saved successfully! You can now use the AI Tab Assistant.
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>
