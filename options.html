@@ -1,140 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Tab Assistant Settings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tab Assistant Pro - Settings</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        * {
             margin: 0;
-            padding: 40px 20px;
-            min-height: 100vh;
+            padding: 0;
             box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 0;
+            color: #2d3748;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
             border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
         }
 
-        h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
             text-align: center;
+            position: relative;
         }
 
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 16px;
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="90" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-description {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 1.5rem;
         }
 
-        label {
+        .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
         }
 
-        input[type="text"], input[type="password"] {
+        .form-input {
             width: 100%;
-            padding: 12px 16px;
-            box-sizing: border-box;
-            border: 2px solid #e1e5e9;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f7fafc;
         }
 
-        input[type="text"]:focus, input[type="password"]:focus {
+        .form-input:focus {
             outline: none;
             border-color: #667eea;
+            background: white;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .input-description {
-            font-size: 13px;
-            color: #666;
-            margin-top: 5px;
-            line-height: 1.4;
-        }
-
-        .input-description a {
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        .input-description a:hover {
-            text-decoration: underline;
-        }
-
-        .save-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-
-        .save-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .save-button:active {
-            transform: translateY(0);
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-            font-weight: 500;
-        }
-
-        .feature-list {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .feature-list h3 {
-            margin-top: 0;
-            color: #333;
-            font-size: 18px;
-        }
-
-        .feature-list ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        .feature-list li {
-            margin-bottom: 8px;
-            color: #555;
-        }
-
-        .api-key-toggle {
+        .api-key-container {
             position: relative;
         }
 
@@ -146,51 +141,429 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #666;
-            font-size: 18px;
+            font-size: 1.2rem;
+            color: #718096;
+            transition: color 0.2s;
         }
 
         .toggle-visibility:hover {
-            color: #333;
+            color: #4a5568;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox:checked {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+
+        .checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .checkbox-label {
+            color: #4a5568;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .button.secondary:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .success-message, .error-message {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .success-message {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #e53e3e;
+            border: 1px solid #feb2b2;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 {
+            color: #234e52;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .info-box p {
+            color: #2d3748;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .info-box a {
+            color: #319795;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .info-box a:hover {
+            text-decoration: underline;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+
+        .version-info {
+            text-align: center;
+            padding: 1rem;
+            color: #718096;
+            font-size: 0.875rem;
+            border-top: 1px solid #e2e8f0;
+            background: #f7fafc;
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .advanced-settings {
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            background: #f7fafc;
+        }
+
+        .advanced-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .advanced-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 AI Tab Assistant</h1>
-        <p class="subtitle">Configure your AI assistant settings</p>
-
-        <div class="feature-list">
-            <h3>✨ Features</h3>
-            <ul>
-                <li>📸 Take screenshots of any webpage</li>
-                <li>📄 Analyze and describe page content</li>
-                <li>🧪 Generate comprehensive test cases</li>
-                <li>📝 Create detailed documentation</li>
-                <li>💬 Chat about any aspect of the current tab</li>
-                <li>🔍 Extract and analyze page structure</li>
-            </ul>
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">🤖</div>
+                <h1>AI Tab Assistant Pro</h1>
+                <p>Configure your intelligent web analysis companion</p>
+            </div>
         </div>
 
-        <form id="settings-form">
-            <div class="form-group">
-                <label for="api-key">Gemini API Key</label>
-                <div class="api-key-toggle">
-                    <input type="password" id="api-key" placeholder="Enter your Gemini API key" />
-                    <button type="button" class="toggle-visibility" onclick="toggleApiKeyVisibility()">👁️</button>
-                </div>
-                <div class="input-description">
-                    Get your free API key from 
-                    <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>.
-                    Your key is stored locally and never shared.
+        <div class="content">
+            <!-- API Configuration Section -->
+            <div class="section">
+                <h2 class="section-title">🔑 API Configuration</h2>
+                <p class="section-description">
+                    Configure your Gemini Flash 2.0 API key to enable AI-powered features. Your API key is stored securely and only used for AI analysis.
+                </p>
+
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label for="api-key" class="form-label">Gemini API Key *</label>
+                        <div class="api-key-container">
+                            <input 
+                                type="password" 
+                                id="api-key" 
+                                class="form-input" 
+                                placeholder="Enter your Gemini API key..."
+                                required
+                            >
+                            <button type="button" class="toggle-visibility" onclick="toggleApiKeyVisibility()">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>🚀 How to get your API key:</h4>
+                        <p>
+                            1. Visit <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                            2. Sign in with your Google account<br>
+                            3. Create a new API key<br>
+                            4. Copy and paste it above
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Features Section -->
+            <div class="section">
+                <h2 class="section-title">⚡ Features</h2>
+                <p class="section-description">
+                    Enable or disable specific AI features based on your needs.
+                </p>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="feature-screenshots" class="checkbox" checked>
+                        <label for="feature-screenshots" class="checkbox-label">Smart Screenshot Analysis</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="feature-analysis" class="checkbox" checked>
+                        <label for="feature-analysis" class="checkbox-label">Page Content Analysis</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="feature-testing" class="checkbox" checked>
+                        <label for="feature-testing" class="checkbox-label">Test Case Generation</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="feature-docs" class="checkbox" checked>
+                        <label for="feature-docs" class="checkbox-label">Documentation Creation</label>
+                    </div>
                 </div>
             </div>
 
-            <button type="submit" class="save-button">Save Settings</button>
-        </form>
+            <!-- Preferences Section -->
+            <div class="section">
+                <h2 class="section-title">⚙️ Preferences</h2>
+                <p class="section-description">
+                    Customize your experience with advanced settings and preferences.
+                </p>
 
-        <div id="success-message" class="success-message">
-            ✅ Settings saved successfully! You can now use the AI Tab Assistant.
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pref-detailed" class="checkbox" checked>
+                        <label for="pref-detailed" class="checkbox-label">Generate detailed reports</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pref-history" class="checkbox" checked>
+                        <label for="pref-history" class="checkbox-label">Save analysis history</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pref-auto" class="checkbox">
+                        <label for="pref-auto" class="checkbox-label">Auto-analyze new pages</label>
+                    </div>
+                </div>
+
+                <div class="advanced-settings">
+                    <button type="button" class="advanced-toggle" onclick="toggleAdvanced()">
+                        🔧 Advanced Settings <span id="advanced-arrow">▼</span>
+                    </button>
+                    <div id="advanced-content" class="hidden">
+                        <div style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">AI Temperature (Creativity)</label>
+                                <input type="range" id="ai-temperature" min="0" max="1" step="0.1" value="0.7" class="form-input">
+                                <div style="font-size: 0.875rem; color: #718096; margin-top: 0.25rem;">
+                                    Current: <span id="temperature-value">0.7</span> (0 = Conservative, 1 = Creative)
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Maximum Response Length</label>
+                                <select id="max-tokens" class="form-input">
+                                    <option value="2048">Short (2048 tokens)</option>
+                                    <option value="4096" selected>Medium (4096 tokens)</option>
+                                    <option value="8192">Long (8192 tokens)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="section">
+                <h2 class="section-title">📊 Usage Statistics</h2>
+                <p class="section-description">
+                    Track your AI assistant usage and performance metrics.
+                </p>
+
+                <div class="stats-grid" id="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-analyses">-</div>
+                        <div class="stat-label">Analyses Performed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-screenshots">-</div>
+                        <div class="stat-label">Screenshots Taken</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-uptime">-</div>
+                        <div class="stat-label">Uptime (hours)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-success">-</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management Section -->
+            <div class="section">
+                <h2 class="section-title">💾 Data Management</h2>
+                <p class="section-description">
+                    Manage your stored data, history, and export your settings.
+                </p>
+
+                <div class="button-group">
+                    <button type="button" class="button secondary" onclick="exportData()">
+                        📥 Export Data
+                    </button>
+                    <button type="button" class="button secondary" onclick="clearHistory()">
+                        🗑️ Clear History
+                    </button>
+                    <button type="button" class="button secondary" onclick="resetSettings()">
+                        🔄 Reset Settings
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button type="button" class="button" onclick="saveSettings()">
+                    <span id="save-text">💾 Save Settings</span>
+                </button>
+                <button type="button" class="button secondary" onclick="testConnection()">
+                    🧪 Test API Connection
+                </button>
+            </div>
+
+            <!-- Messages -->
+            <div id="success-message" class="success-message"></div>
+            <div id="error-message" class="error-message"></div>
+        </div>
+
+        <div class="version-info">
+            <p>AI Tab Assistant Pro v2.0 • Powered by Gemini Flash 2.0 • Made with ❤️</p>
         </div>
     </div>
 
