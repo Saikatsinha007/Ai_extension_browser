@@ -120,6 +120,11 @@ async function handleScreenshotCapture(sender, sendResponse) {
       throw new Error('No active tab found');
     }
     
+    // Check if tab is in a valid state
+    if (sender.tab.url.startsWith('chrome://') || sender.tab.url.startsWith('chrome-extension://')) {
+      throw new Error('Cannot capture screenshots of Chrome internal pages');
+    }
+    
     // Capture visible area with high quality
     const dataUrl = await chrome.tabs.captureVisibleTab(sender.tab.windowId, {
       format: 'png',
@@ -127,11 +132,20 @@ async function handleScreenshotCapture(sender, sendResponse) {
     });
     
     if (!dataUrl) {
-      throw new Error('Failed to capture screenshot');
+      throw new Error('Failed to capture screenshot - empty result');
+    }
+    
+    // Validate that we got a proper image
+    if (!dataUrl.startsWith('data:image/png;base64,')) {
+      throw new Error('Invalid screenshot format received');
     }
     
     // Optional: Save screenshot to local storage for history
-    await saveScreenshotToHistory(dataUrl, sender.tab);
+    try {
+      await saveScreenshotToHistory(dataUrl, sender.tab);
+    } catch (historyError) {
+      console.warn('Failed to save screenshot to history:', historyError);
+    }
     
     sendResponse({ 
       screenshot: dataUrl,
@@ -144,8 +158,22 @@ async function handleScreenshotCapture(sender, sendResponse) {
     
   } catch (error) {
     console.error('Screenshot capture error:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to capture screenshot';
+    
+    if (error.message.includes('Cannot capture')) {
+      errorMessage = error.message;
+    } else if (error.message.includes('permissions')) {
+      errorMessage = 'Screenshot permission denied. Please refresh the page and try again.';
+    } else if (error.message.includes('Extension context')) {
+      errorMessage = 'Extension context invalidated. Please refresh the page and try again.';
+    } else {
+      errorMessage = `Screenshot failed: ${error.message}`;
+    }
+    
     sendResponse({ 
-      error: error.message || 'Failed to capture screenshot'
+      error: errorMessage
     });
   }
 }

@@ -23,6 +23,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Add visual feedback to quick action buttons
+    const quickButtons = document.querySelectorAll('.quick-action-btn');
+    quickButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Add clicked animation
+            this.classList.add('clicked');
+            setTimeout(() => {
+                this.classList.remove('clicked');
+            }, 200);
+        });
+    });
+
     // Initialize app
     initializeApp();
 });
@@ -35,13 +47,20 @@ async function initializeApp() {
         currentTab = tabs[0];
         
         // Check API key
-        await checkApiKey();
+        const hasApiKey = await checkApiKey();
         
         // Update status indicator
-        updateStatusIndicator('connected');
+        updateStatusIndicator(hasApiKey ? 'connected' : 'error');
+        
+        // Show helpful message if no API key
+        if (!hasApiKey) {
+            showApiKeySetupMessage();
+        }
+        
     } catch (error) {
         console.error('Failed to initialize app:', error);
         updateStatusIndicator('error');
+        showErrorMessage('Failed to initialize extension. Please try reloading the page.');
     }
 }
 
@@ -55,29 +74,77 @@ function updateStatusIndicator(status) {
         disconnected: '#718096'
     };
     indicator.style.background = colors[status] || colors.disconnected;
+    
+    // Add pulse animation for processing
+    if (status === 'processing') {
+        indicator.style.animation = 'pulse 1s ease-in-out infinite';
+    } else {
+        indicator.style.animation = 'breathe 2s ease-in-out infinite';
+    }
 }
 
 // Check if API key is set
 async function checkApiKey() {
     return new Promise((resolve) => {
         chrome.storage.sync.get(['geminiApiKey'], (result) => {
-            if (!result.geminiApiKey) {
-                addMessage('assistant', '⚠️ **Setup Required**\n\nPlease configure your Gemini API key in the extension options to start using AI features.\n\n[Get your API key from Google AI Studio](https://makersuite.google.com/app/apikey)');
-                updateStatusIndicator('error');
-                resolve(false);
-            } else {
-                updateStatusIndicator('connected');
-                resolve(true);
-            }
+            resolve(!!result.geminiApiKey);
         });
     });
 }
 
-// Send quick message from buttons
-function sendQuickMessage(message) {
+// Show API key setup message
+function showApiKeySetupMessage() {
+    const messagesContainer = document.getElementById('messages');
+    const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+    
+    if (welcomeMessage) {
+        welcomeMessage.innerHTML = `
+            <h3>⚙️ Setup Required</h3>
+            <p>Configure your Gemini API key to start using AI features</p>
+            <button class="setup-btn" onclick="openOptionsPage()">
+                🔧 Open Settings
+            </button>
+            <p style="font-size: 10px; margin-top: 10px; color: #666;">
+                <a href="https://makersuite.google.com/app/apikey" target="_blank">Get API Key</a>
+            </p>
+        `;
+    }
+}
+
+// Open options page
+function openOptionsPage() {
+    chrome.runtime.openOptionsPage();
+}
+
+// Show error message
+function showErrorMessage(message) {
+    addMessage('assistant', `❌ **Error**\n\n${message}`);
+}
+
+// Send quick message from buttons with improved feedback
+window.sendQuickMessage = async function(message) {
+    // Disable all quick action buttons temporarily
+    const quickButtons = document.querySelectorAll('.quick-action-btn');
+    quickButtons.forEach(btn => {
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+    });
+
+    // Add message to input and send
     const userInput = document.getElementById('user-input');
     userInput.value = message;
-    sendMessage();
+    
+    try {
+        await sendMessage();
+    } finally {
+        // Re-enable buttons
+        setTimeout(() => {
+            quickButtons.forEach(btn => {
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+            });
+        }, 1000);
+    }
 }
 
 // Send message
@@ -89,7 +156,10 @@ async function sendMessage() {
 
     // Check API key first
     const hasApiKey = await checkApiKey();
-    if (!hasApiKey) return;
+    if (!hasApiKey) {
+        showErrorMessage('Please configure your Gemini API key in the extension settings first.');
+        return;
+    }
 
     // Add user message
     addMessage('user', message);
@@ -149,12 +219,34 @@ async function processMessage(message) {
     }
 }
 
-// Enhanced screenshot handling with AI analysis
+// Enhanced screenshot handling with better error handling
 async function handleScreenshot(message) {
     return new Promise((resolve) => {
+        // Add immediate feedback
+        addMessage('assistant', '📸 **Taking Screenshot...**\n\nCapturing current page...', false);
+        
         chrome.runtime.sendMessage({action: 'captureScreenshot'}, async (response) => {
+            // Remove the "taking screenshot" message
+            setTimeout(() => {
+                const messages = document.querySelectorAll('.message.assistant');
+                const lastMessage = messages[messages.length - 2]; // Get second to last
+                if (lastMessage && lastMessage.textContent.includes('Taking Screenshot')) {
+                    lastMessage.remove();
+                }
+            }, 100);
+            
+            if (chrome.runtime.lastError) {
+                resolve(`❌ **Screenshot Error**\n\nChrome runtime error: ${chrome.runtime.lastError.message}`);
+                return;
+            }
+            
+            if (!response) {
+                resolve(`❌ **Screenshot Error**\n\nNo response received from background script. Please try refreshing the page.`);
+                return;
+            }
+            
             if (response.error) {
-                resolve(`❌ **Screenshot Error**\n\nCould not capture screenshot: ${response.error}\n\nPlease ensure the page is fully loaded and try again.`);
+                resolve(`❌ **Screenshot Error**\n\n${response.error}\n\nTry refreshing the page and ensure it's fully loaded.`);
                 return;
             }
 
@@ -162,7 +254,18 @@ async function handleScreenshot(message) {
                 // Add screenshot to the conversation
                 const screenshotDiv = document.createElement('div');
                 screenshotDiv.className = 'screenshot-container';
-                screenshotDiv.innerHTML = `<img src="${response.screenshot}" alt="Page Screenshot" style="border: 2px solid #e2e8f0; border-radius: 8px;">`;
+                screenshotDiv.innerHTML = `
+                    <img src="${response.screenshot}" alt="Page Screenshot" style="
+                        max-width: 100%; 
+                        border: 2px solid #e2e8f0; 
+                        border-radius: 8px; 
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        cursor: pointer;
+                    " onclick="this.style.transform = this.style.transform ? '' : 'scale(1.5)'; this.style.zIndex = this.style.zIndex ? '' : '1000'; this.style.position = this.style.position ? '' : 'relative';">
+                    <p style="font-size: 11px; color: #666; margin-top: 5px; text-align: center;">
+                        📸 Screenshot taken at ${new Date().toLocaleTimeString()} • Click to zoom
+                    </p>
+                `;
                 
                 // Insert screenshot into the most recent message
                 setTimeout(() => {
@@ -170,7 +273,9 @@ async function handleScreenshot(message) {
                     const lastMessage = messagesContainer.lastElementChild;
                     if (lastMessage && lastMessage.classList.contains('assistant')) {
                         const bubble = lastMessage.querySelector('.message-bubble');
-                        bubble.appendChild(screenshotDiv);
+                        if (bubble) {
+                            bubble.appendChild(screenshotDiv);
+                        }
                     }
                 }, 100);
 
@@ -182,8 +287,8 @@ async function handleScreenshot(message) {
 I've captured a screenshot of the current webpage. Here's the context:
 
 **Page Information:**
-- Title: ${pageContext.metadata.title}
-- URL: ${pageContext.metadata.url}
+- Title: ${pageContext.metadata?.title || 'Unknown'}
+- URL: ${pageContext.metadata?.url || 'Unknown'}
 - Page Type: ${determinePageType(pageContext)}
 
 **User Request:** ${message}
@@ -198,10 +303,11 @@ Please analyze this screenshot and webpage context to provide:
 Provide a professional, detailed analysis.`;
 
                 const aiResponse = await callGeminiFlash2(analysisPrompt);
-                resolve(`📸 **Screenshot Captured & Analyzed**\n\n${aiResponse}`);
+                resolve(`📸 **Screenshot Analysis Complete**\n\n${aiResponse}`);
                 
             } catch (error) {
-                resolve(`📸 Screenshot captured successfully!\n\n*AI analysis unavailable: ${error.message}*`);
+                console.error('Screenshot analysis error:', error);
+                resolve(`📸 **Screenshot Captured Successfully!**\n\n*AI analysis unavailable: ${error.message}*\n\nYou can see the screenshot above and ask me questions about it.`);
             }
         });
     });
@@ -219,22 +325,22 @@ async function handlePageAnalysis(message) {
         const analysisPrompt = `🔍 **Comprehensive Page Analysis**
 
 **Page Details:**
-- Title: "${pageContext.metadata.title}"
-- URL: ${pageContext.metadata.url}
-- Description: ${pageContext.metadata.description || 'Not available'}
-- Keywords: ${pageContext.metadata.keywords || 'Not specified'}
+- Title: "${pageContext.metadata?.title || 'Unknown'}"
+- URL: ${pageContext.metadata?.url || 'Unknown'}
+- Description: ${pageContext.metadata?.description || 'Not available'}
+- Keywords: ${pageContext.metadata?.keywords || 'Not specified'}
 
 **Content Structure:**
-- Headings: ${pageContext.structure.headings.length} (${pageContext.structure.headings.slice(0, 3).map(h => h.level.toUpperCase()).join(', ')})
-- Links: ${pageContext.structure.links.length}
-- Images: ${pageContext.structure.images.length}
-- Forms: ${pageContext.structure.forms.length}
+- Headings: ${pageContext.structure?.headings?.length || 0} (${pageContext.structure?.headings?.slice(0, 3).map(h => h.level.toUpperCase()).join(', ') || 'None'})
+- Links: ${pageContext.structure?.links?.length || 0}
+- Images: ${pageContext.structure?.images?.length || 0}
+- Forms: ${pageContext.structure?.forms?.length || 0}
 
 **Main Content Headings:**
-${pageContext.structure.headings.slice(0, 8).map(h => `${h.level.toUpperCase()}: ${h.text}`).join('\n')}
+${pageContext.structure?.headings?.slice(0, 8).map(h => `${h.level.toUpperCase()}: ${h.text}`).join('\n') || 'No headings found'}
 
 **Content Preview:**
-${pageContext.text.substring(0, 1000)}...
+${pageContext.text?.substring(0, 1000) || 'No content available'}...
 
 **User's Specific Request:** ${message}
 
@@ -269,23 +375,23 @@ async function handleTestCases(message) {
         const testPrompt = `🧪 **Professional Test Case Generation**
 
 **Page Under Test:**
-- Title: ${pageContext.metadata.title}
-- URL: ${pageContext.metadata.url}
+- Title: ${pageContext.metadata?.title || 'Unknown'}
+- URL: ${pageContext.metadata?.url || 'Unknown'}
 - Page Type: ${determinePageType(pageContext)}
 
 **Interactive Elements Detected:**
 
-**Buttons & Actions (${testableElements.buttons.length}):**
-${testableElements.buttons.map(btn => `- "${btn.text || 'Unnamed'}" ${btn.id ? `(ID: ${btn.id})` : ''}`).join('\n')}
+**Buttons & Actions (${testableElements.buttons?.length || 0}):**
+${testableElements.buttons?.map(btn => `- "${btn.text || 'Unnamed'}" ${btn.id ? `(ID: ${btn.id})` : ''}`).join('\n') || 'No buttons found'}
 
-**Input Fields (${testableElements.inputs.length}):**
-${testableElements.inputs.map(input => `- ${input.inputType} field: "${input.name || input.placeholder || 'Unnamed'}" ${input.required ? '(Required)' : '(Optional)'}`).join('\n')}
+**Input Fields (${testableElements.inputs?.length || 0}):**
+${testableElements.inputs?.map(input => `- ${input.inputType} field: "${input.name || input.placeholder || 'Unnamed'}" ${input.required ? '(Required)' : '(Optional)'}`).join('\n') || 'No input fields found'}
 
-**Clickable Elements (${testableElements.clickableElements.length}):**
-${testableElements.clickableElements.slice(0, 10).map(el => `- "${el.text.substring(0, 40)}..." (${el.type})`).join('\n')}
+**Clickable Elements (${testableElements.clickableElements?.length || 0}):**
+${testableElements.clickableElements?.slice(0, 10).map(el => `- "${el.text.substring(0, 40)}..." (${el.type})`).join('\n') || 'No clickable elements found'}
 
-**Forms Detected (${pageContext.structure.forms.length}):**
-${pageContext.structure.forms.map((form, i) => `Form ${i+1}: ${form.method.toUpperCase()} action with ${form.inputs.length} inputs`).join('\n')}
+**Forms Detected (${pageContext.structure?.forms?.length || 0}):**
+${pageContext.structure?.forms?.map((form, i) => `Form ${i+1}: ${form.method.toUpperCase()} action with ${form.inputs.length} inputs`).join('\n') || 'No forms found'}
 
 **User Request:** ${message}
 
@@ -344,27 +450,27 @@ async function handleDocumentation(message) {
         const docPrompt = `📝 **Professional Documentation Generation**
 
 **Page Information:**
-- Title: "${pageContext.metadata.title}"
-- URL: ${pageContext.metadata.url}
-- Description: ${pageContext.metadata.description || 'Not provided'}
+- Title: "${pageContext.metadata?.title || 'Unknown'}"
+- URL: ${pageContext.metadata?.url || 'Unknown'}
+- Description: ${pageContext.metadata?.description || 'Not provided'}
 - Page Type: ${determinePageType(pageContext)}
 
 **Content Structure Analysis:**
-- Total Headings: ${pageContext.structure.headings.length}
-- Navigation Links: ${pageContext.structure.links.length}
-- Media Elements: ${pageContext.structure.images.length}
-- Interactive Forms: ${pageContext.structure.forms.length}
+- Total Headings: ${pageContext.structure?.headings?.length || 0}
+- Navigation Links: ${pageContext.structure?.links?.length || 0}
+- Media Elements: ${pageContext.structure?.images?.length || 0}
+- Interactive Forms: ${pageContext.structure?.forms?.length || 0}
 
 **Heading Hierarchy:**
-${pageContext.structure.headings.map(h => `${'  '.repeat(parseInt(h.level.charAt(1)) - 1)}${h.level.toUpperCase()}: ${h.text}`).join('\n')}
+${pageContext.structure?.headings?.map(h => `${'  '.repeat(parseInt(h.level.charAt(1)) - 1)}${h.level.toUpperCase()}: ${h.text}`).join('\n') || 'No headings found'}
 
 **Interactive Elements:**
-${pageContext.structure.forms.map((form, i) => 
+${pageContext.structure?.forms?.map((form, i) => 
     `Form ${i+1} (${form.method.toUpperCase()}): ${form.inputs.length} inputs - ${form.inputs.map(inp => inp.type).join(', ')}`
-).join('\n')}
+).join('\n') || 'No forms found'}
 
 **Content Summary:**
-${pageContext.text.substring(0, 1200)}...
+${pageContext.text?.substring(0, 1200) || 'No content available'}...
 
 **User Request:** ${message}
 
@@ -424,16 +530,16 @@ async function handleIntelligentChat(message) {
 🤖 **AI Assistant Context**
 
 **Current Webpage:**
-- Title: "${pageContext.metadata.title}"
-- URL: ${pageContext.metadata.url}
+- Title: "${pageContext.metadata?.title || 'Unknown'}"
+- URL: ${pageContext.metadata?.url || 'Unknown'}
 - Type: ${determinePageType(pageContext)}
-- Content: ${pageContext.text.substring(0, 800)}...
+- Content: ${pageContext.text?.substring(0, 800) || 'No content available'}...
 
 **Page Structure:**
-- ${pageContext.structure.headings.length} headings
-- ${pageContext.structure.links.length} links  
-- ${pageContext.structure.forms.length} forms
-- ${pageContext.structure.images.length} images
+- ${pageContext.structure?.headings?.length || 0} headings
+- ${pageContext.structure?.links?.length || 0} links  
+- ${pageContext.structure?.forms?.length || 0} forms
+- ${pageContext.structure?.images?.length || 0} images
 
 ${conversationContext}
 
@@ -530,8 +636,17 @@ async function callGeminiFlash2(prompt) {
 // Helper function to get comprehensive page context
 async function getPageContext() {
     return new Promise((resolve) => {
+        if (!currentTab) {
+            resolve({error: 'No active tab found'});
+            return;
+        }
+        
         chrome.tabs.sendMessage(currentTab.id, {type: 'GET_FULL_PAGE_INFO'}, (response) => {
-            resolve(response || {error: 'Could not access page information'});
+            if (chrome.runtime.lastError) {
+                resolve({error: chrome.runtime.lastError.message});
+            } else {
+                resolve(response || {error: 'Could not access page information'});
+            }
         });
     });
 }
@@ -539,19 +654,28 @@ async function getPageContext() {
 // Helper function to get testable elements
 async function getTestableElements() {
     return new Promise((resolve) => {
+        if (!currentTab) {
+            resolve({error: 'No active tab found'});
+            return;
+        }
+        
         chrome.tabs.sendMessage(currentTab.id, {type: 'GET_TESTABLE_ELEMENTS'}, (response) => {
-            resolve(response || {error: 'Could not access testable elements'});
+            if (chrome.runtime.lastError) {
+                resolve({error: chrome.runtime.lastError.message});
+            } else {
+                resolve(response || {error: 'Could not access testable elements'});
+            }
         });
     });
 }
 
 // Helper function to determine page type
 function determinePageType(pageContext) {
-    if (!pageContext) return 'Unknown';
+    if (!pageContext || !pageContext.metadata) return 'Unknown';
     
-    const url = pageContext.metadata.url.toLowerCase();
-    const title = pageContext.metadata.title.toLowerCase();
-    const hasForm = pageContext.structure.forms.length > 0;
+    const url = pageContext.metadata.url?.toLowerCase() || '';
+    const title = pageContext.metadata.title?.toLowerCase() || '';
+    const hasForm = pageContext.structure?.forms?.length > 0;
     
     if (url.includes('github.com')) return 'GitHub Repository';
     if (url.includes('stackoverflow.com')) return 'Stack Overflow';
@@ -559,7 +683,7 @@ function determinePageType(pageContext) {
     if (url.includes('admin') || url.includes('dashboard')) return 'Admin/Dashboard';
     if (hasForm && (title.includes('login') || title.includes('sign'))) return 'Authentication Page';
     if (hasForm) return 'Form/Input Page';
-    if (pageContext.structure.headings.length > 5) return 'Content/Article Page';
+    if (pageContext.structure?.headings?.length > 5) return 'Content/Article Page';
     if (url.includes('api.') || title.includes('api')) return 'API Documentation';
     
     return 'Web Page';
